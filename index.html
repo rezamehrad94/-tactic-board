@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<title>Tactic Board</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Tactic Board">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0e1a14">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f1f3ee;--card:#fff;--ink:#14201a;--mute:#5d6b63;--line:#d5dbd3;--acc:#1f8f55;--chip:#e6ebe4;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1a14;--card:#16261d;--ink:#eef4ee;--mute:#96a79b;--line:#27392e;--acc:#3ddc84;--chip:#1e3126;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1a14;--card:#16261d;--ink:#eef4ee;--mute:#96a79b;--line:#27392e;--acc:#3ddc84;--chip:#1e3126;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.6}
+main{max-width:480px;margin:0 auto;padding:12px 12px 40px}
+.top{display:flex;gap:8px;margin-bottom:10px}
+.top label{flex:1;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px 12px}
+.top small{display:block;color:var(--mute);font-size:11px}
+input,textarea{font:inherit;color:inherit;background:transparent;border:0;outline:0;width:100%}
+.top input{font-weight:800;font-size:16px;padding:0}
+.teams{display:flex;gap:6px;margin-bottom:6px}.teams select{flex:1;min-width:0;font:inherit;font-weight:800;padding:8px 10px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink)}.teams button{flex:none;font:inherit;font-size:13px;padding:8px 10px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink)}.teams button.pr{background:var(--acc);color:#fff;border-color:var(--acc)}.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}
+.tabs button{font:inherit;font-weight:600;font-size:13px;padding:9px 4px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.tabs button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.fm{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:4px}
+.fm button{flex:none;font:inherit;font-size:13px;direction:ltr;padding:5px 12px;border-radius:99px;border:1px solid var(--line);background:var(--chip);color:var(--ink)}
+.fm button.on{border-color:var(--acc);outline:2px solid var(--acc);font-weight:800}
+.pitch{position:relative;width:100%;aspect-ratio:68/88;border-radius:16px;overflow:hidden;background:repeating-linear-gradient(180deg,#2e8b57 0 12.5%,#2a8250 12.5% 25%);border:2px solid #1a5c38;direction:ltr}
+.pitch svg{position:absolute;inset:0;width:100%;height:100%}
+.tag{position:absolute;top:8px;left:10px;font-size:12px;font-weight:800;color:#ffffffcc;direction:ltr}
+.p{touch-action:none;position:absolute;transform:translate(-50%,-50%);width:72px;text-align:center;direction:ltr;transition:left .45s cubic-bezier(.3,.8,.3,1),top .45s cubic-bezier(.3,.8,.3,1)}
+.p i{display:grid;place-items:center;width:40px;height:40px;margin:0 auto;border-radius:50%;background:var(--c);color:#fff;font-style:normal;font-weight:800;font-size:11px;border:2px solid #fff;box-shadow:0 2px 6px #0006}.p u{position:absolute;top:-5px;right:8px;text-decoration:none;font-size:9px;font-weight:800;background:#fff;color:#111;border-radius:99px;padding:0 4px;line-height:14px}.p u:empty{display:none}.p.drag{transition:none;z-index:3}.pitch svg.ar{pointer-events:none}
+.p b{display:block;margin-top:2px;font-size:11px;font-weight:600;color:#fff;text-shadow:0 1px 3px #000,0 0 2px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.p.gk i{color:#2b2100}
+.p.sel i,.b.sel{outline:3px solid #ff4d6d;outline-offset:2px}
+.hint{font-size:12px;color:var(--mute);margin:8px 2px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-top:10px}
+.card h3{margin:0 0 8px;font-size:14px}
+.bench{display:flex;flex-wrap:wrap;gap:8px}
+.b{display:flex;align-items:center;gap:6px;background:var(--chip);border-radius:12px;padding:5px 10px 5px 8px;font-size:13px;min-width:84px;border:0;color:var(--ink);font-family:inherit}
+.b em{font-style:normal;font-weight:800;color:var(--acc);min-width:20px}
+.b.add{justify-content:center;color:var(--acc);font-weight:800;border:1px dashed var(--acc);background:transparent}
+.ed{display:flex;gap:8px;align-items:center}
+.ed input{background:var(--chip);border-radius:10px;padding:8px 10px}
+.ed input.n{width:64px;text-align:center;flex:none}
+.act{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.act button{font:inherit;font-size:13px;padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.act button.pr{background:var(--acc);color:#fff;border-color:var(--acc)}
+textarea{min-height:72px;resize:vertical;font-size:14px}
+#im{position:fixed;inset:0;background:#000a;display:grid;place-items:center;padding:16px;z-index:5;overflow:auto}#im[hidden]{display:none}#sh{position:fixed;inset:0;background:#000a;display:grid;place-items:center;padding:16px;z-index:5}#sh[hidden]{display:none}#sht{background:var(--chip);border-radius:10px;padding:10px;font-size:13px}.toast{z-index:9;position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:99px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.show{opacity:1}.mtl button,.mtl label{white-space:nowrap}.mtl input{min-width:70px}#pitch .p i.kit{width:calc(40px*var(--ks,1));height:calc(40px*var(--ks,1))}.pitch#pitch .p i.kit svg{width:calc(40px*var(--ks,1));height:calc(40px*var(--ks,1))}#pitch .p u{right:calc(28px - 20px*var(--ks,1))}.cb{position:absolute;top:-5px;left:6px;text-align:center;text-decoration:none;font-size:9px;font-weight:800;background:#facc15;color:#111;border-radius:99px;width:15px;height:15px;line-height:15px;box-shadow:0 1px 3px #0008;z-index:2}#pitch .cb{left:calc(32px - 20px*var(--ks,1))}.mp .cb{left:calc(29px - 20px*var(--ks,1))}.cbd{margin-left:4px;background:#facc15;color:#111;border-radius:99px;font-size:9px;font-weight:800;padding:0 5px;line-height:15px}.sbt .co{display:block;font-style:normal;font-size:10px;opacity:.75}.p i.kit{background:none;border:0;box-shadow:none;border-radius:0;width:40px;height:40px}.pitch .p i.kit svg{position:static;inset:auto;display:block;width:40px;height:40px;filter:drop-shadow(0 2px 3px #0008)}.p.sel i.kit{outline:none}.p.sel i.kit svg{filter:drop-shadow(0 0 3px #ff4d6d) drop-shadow(0 0 6px #ff4d6d)}#bench{display:block}.bg h4{margin:10px 0 6px;font-size:12px;color:var(--mute)}.b.gG{box-shadow:inset 4px 0 #facc15}.b.gD{box-shadow:inset 4px 0 #2563eb}.b.gM{box-shadow:inset 4px 0 #16a34a}.b.gA{box-shadow:inset 4px 0 #dc2626}.mp.ls,#pitch.ls{aspect-ratio:auto;height:340px;background:repeating-linear-gradient(90deg,#2e8b57 0 6.25%,#2a8250 6.25% 12.5%)}@media (orientation:landscape){.mp.ls{height:max(320px,calc(100svh - 80px))}#pitch.ls{height:max(350px,calc(100svh - 70px))}}main#mv.hz,main#mt.hz{max-width:1200px}.ed select{font:inherit;background:var(--chip);color:var(--ink);border:0;border-radius:10px;padding:8px}#nv{position:sticky;top:0;z-index:4;display:flex;gap:6px;max-width:480px;margin:0 auto;padding:10px 12px 4px;background:linear-gradient(var(--bg) 70%,transparent)}#nv button{flex:1;font:inherit;font-weight:800;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:10px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--mute)}#nv button.on{background:linear-gradient(135deg,var(--acc),#0ea5a4);color:var(--bg);border-color:transparent;box-shadow:0 6px 18px #0003}.mpick{display:flex;gap:8px;align-items:stretch;margin:8px 0}.mpick label{flex:1;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px 10px}.mpick small{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}.mpick select{font:inherit;font-weight:800;color:var(--ink);background:transparent;border:0;outline:0;width:100%}#msw{flex:none;width:44px;font-size:18px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--acc)}.sb{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin:6px 0 10px;padding:12px 14px;border-radius:18px;color:#fff;background:linear-gradient(135deg,#0a2417,#134a30 55%,#0a2417);border:1px solid #1f6a45;box-shadow:0 12px 30px #0005}.sbt{min-width:0}.sbt small{font-size:10px;letter-spacing:.16em;color:#9fd8b8}.sbt b{display:block;font-size:17px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-bottom:3px;border-bottom:3px solid #38bdf8}.sbt.a{text-align:right}.sbt.a b{border-color:#f472b6}.sbt em{display:block;margin-top:3px;font-style:normal;font-size:11px;color:#cfe9da}.vs{font-weight:800;font-size:12px;letter-spacing:.1em;background:#ffffff22;border-radius:99px;padding:7px 11px}.mpw{overflow-x:auto;border-radius:16px;-webkit-overflow-scrolling:touch}.mpw .pitch{min-width:100%}.mtl{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 0 6px}.mtl label{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--mute)}.mtl input{width:110px;accent-color:var(--acc)}.mtl button{font:inherit;font-size:12px;font-weight:700;padding:6px 12px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--ink)}.kt{width:20px;height:20px;border-radius:50%;border:3px solid #fff;padding:0;vertical-align:middle;margin-left:6px}.mp{aspect-ratio:68/176;box-shadow:0 16px 36px #0006,inset 0 0 70px #0003}.mp .p{width:66px;height:auto}.mp .p i.kit{width:calc(40px*var(--ks,1));height:calc(40px*var(--ks,1))}.pitch.mp .p i.kit svg{width:calc(40px*var(--ks,1));height:calc(40px*var(--ks,1))}.pitch .p svg.sh{position:static;inset:auto;display:block;width:calc(64px*var(--ks,1));height:calc(60px*var(--ks,1));margin:0 auto;filter:drop-shadow(0 2px 3px #0008)}.nm{position:absolute;transform:translate(-50%,0);margin-top:calc(31px*var(--ks,1));z-index:6;pointer-events:none;padding:1px 6px;border-radius:99px;background:#000c;color:#fff;font-size:10.5px;font-weight:700;white-space:nowrap;max-width:68px;overflow:hidden;text-overflow:ellipsis}.mp .p.sel .sh{filter:drop-shadow(0 0 3px #ff4d6d) drop-shadow(0 0 6px #ff4d6d)}.mp .p u{top:-5px;right:calc(29px - 20px*var(--ks,1))}.mp .p b{font-size:10.5px;margin:1px -10px 0}.mfm .hint b{color:var(--ink)}.mli{display:flex;gap:6px;margin-bottom:6px}.mli button{font:inherit;font-size:13px;padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:var(--chip);color:var(--ink)}.mli button:first-child{flex:1;text-align:left;display:flex;justify-content:space-between;gap:8px}.mli small{color:var(--mute)}
+</style>
+</head>
+<body>
+<nav id="nv"><button data-v="t" class="on">⚽ Squads</button><button data-v="m">🏟 Match</button></nav><main id="mt">
+  <div class="teams"><select id="tsel" aria-label="Team"></select><button id="tnew">+ New</button><button id="tdel">Delete</button><button id="tsv" class="pr">Save</button></div><div class="hint" id="sv" style="margin:0 2px 8px"></div>
+  <div class="top">
+    <label><small>Head coach</small><input id="coach" placeholder="Coach name" autocomplete="off"></label>
+    <label><small>Team</small><input id="team" placeholder="Team name" autocomplete="off"></label>
+  </div>
+  <div class="tabs" id="tabs"></div>
+  <div class="fm" id="fm"></div>
+  <div class="mtl"><label>Kit size <input type="range" id="ssz" min="1" max="5" step="0.5" value="4"></label><button id="so">↔ Horizontal</button></div><div class="mpw"><div class="pitch" id="pitch"></div></div>
+  <div class="hint" id="hint">Tap a player to select, then tap another player or a sub to swap. Drag a player to place them anywhere.</div>
+  <div class="card" id="edcard" hidden>
+    <h3 id="edt">Edit player</h3><div class="hint" style="margin:0 0 6px">Name and number apply in all three modes. Position is separate per mode.</div>
+    <div class="ed"><input id="edn" placeholder="Player name" autocomplete="off"><input id="edu" class="n" inputmode="numeric" placeholder="No." autocomplete="off"><select id="edg"><option value="G">GK</option><option value="D">DEF</option><option value="M">MID</option><option value="A">FWD</option></select></div>
+    <div class="act"><button id="ecp">☆ Make captain</button><button id="ea" hidden>Draw run arrow</button><button id="eac" hidden>Clear arrow</button><button id="edx" hidden>Remove sub</button><button id="edc">Done</button></div>
+  </div>
+  <div class="card"><h3>Substitutes</h3><div class="bench" id="bench"></div></div>
+  <div class="card"><h3 id="nt">Tactical notes</h3><textarea id="note" placeholder="e.g. Full-backs push high, the number 6 shields the back line…"></textarea></div>
+  <div class="act">
+    <button class="pr" id="share">Share lineup</button><button id="png">Save lineup image</button>
+    <button id="cp">Copy this formation to all modes</button>
+    <button id="cm">Copy lineup from Starting XI</button>
+    <button id="rs">Clear this team</button>
+  </div>
+</main>
+<main id="mv" hidden>
+  <div class="mpick"><label><small>Home</small><select id="mh"></select></label><button id="msw" aria-label="Swap home and away">⇄</button><label><small>Away</small><select id="ma"></select></label></div>
+  <div class="sb" id="msb"></div>
+  <div class="tabs" id="mst"></div>
+  <div class="mtl"><label>Kit size <input type="range" id="msz" min="1" max="5" step="0.5" value="4"></label><button id="mo">↔ Horizontal</button><button id="mz">🔍 Zoom 1×</button></div><div class="mpw"><div class="pitch mp" id="mp"></div></div>
+  <div class="hint">Tap a player, then another player or a sub of the same team to swap. Drag anyone to place them anywhere. Changes stay inside this match and never touch your squads.</div>
+  <div class="card mfm"><div class="hint" id="mlh" style="margin-top:0"></div><div class="fm" id="mfh"></div><div class="hint" id="mla"></div><div class="fm" id="mfa"></div></div>
+  <div class="card"><h3 id="mth">Home subs</h3><div id="mbh"></div></div>
+  <div class="card"><h3 id="mta">Away subs</h3><div id="mba"></div></div>
+  <div class="act"><button class="pr" id="msv">Save match</button><button id="mrs">Reset from squads</button></div>
+  <div class="card"><h3>Saved matches</h3><div id="ml"></div></div>
+</main>
+<div id="sh" hidden><div class="card" style="width:100%;max-width:440px;margin:0"><h3>Lineup text</h3><textarea id="sht" readonly style="min-height:240px"></textarea><div class="act"><button class="pr" id="shc">Copy</button><button id="shs">Share</button><button id="shx">Close</button></div></div></div>
+<div id="im" hidden><div class="card" style="width:100%;max-width:440px;margin:0"><img id="imi" alt="Lineup" style="width:100%;border-radius:10px"><div class="hint">Press and hold the image to save it, or tap Save image.</div><div class="act"><button class="pr" id="ims">Save image</button><button id="imx">Close</button></div></div></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><clipPath id="shclip"><path d="M20 4L8 10L1 22L10 27L14 21V52H46V21L50 27L59 22L52 10L40 4Q30 12 20 4Z"/></clipPath></defs></svg>
+<div class="toast" id="toast"></div>
+<script>
+var F={'4-4-2':[4,4,2],'4-3-3':[4,3,3],'4-2-3-1':[4,2,3,1],'3-2-4-1':[3,2,4,1],'2-3-4-1':[2,3,4,1],'4-5-1':[4,5,1],'4-1-4-1':[4,1,4,1],'4-4-1-1':[4,4,1,1],'4-3-2-1':[4,3,2,1],'4-1-2-1-2':[4,1,2,1,2],'4-2-2-2':[4,2,2,2],'3-5-2':[3,5,2],'3-4-3':[3,4,3],'3-4-2-1':[3,4,2,1],'3-4-1-2':[3,4,1,2],'3-1-4-2':[3,1,4,2],'5-3-2':[5,3,2],'5-4-1':[5,4,1],'5-2-3':[5,2,3],'4-6-0':[4,6]};
+var M={main:{t:'Starting XI',ic:'⚽',gk:90,top:14,k:'#12301f',nt:'Starting XI notes'},attack:{t:'Possession & Attack',ic:'⚡',gk:84,top:7,k:'#c2410c',nt:'Possession & attack notes'},defense:{t:'Defending',ic:'🛡',gk:93,top:34,k:'#1d4ed8',nt:'Defensive notes'}};
+var KEY='tactic-board-v1',s,A,sel=null,DB=null,UID=null,dbt,arrowMode=false;
+function mkR(){var r={},i;for(i=0;i<18;i++)r['p'+i]={n:'',u:String(i+1)};return r}
+function mk(f){var pl=[],b=[],i;for(i=0;i<11;i++)pl.push('p'+i);for(i=11;i<18;i++)b.push('p'+i);return{f:f,note:'',pl:pl,b:b}}
+function def(){
+ return{coach:'',team:'',mode:'main',nid:18,r:mkR(),m:{main:mk('4-3-3'),attack:mk('3-4-3'),defense:mk('5-4-1')}}}
+function load(){try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);if(o&&o.teams)return o;if(o&&o.m){if(o.pl){Object.keys(o.m).forEach(function(k){var c=o.m[k];c.pl=JSON.parse(JSON.stringify(o.pl));c.b=JSON.parse(JSON.stringify(o.b||[]))});delete o.pl;delete o.b}return o}}}catch(e){}return def()}
+function save(){A.ts=Date.now();var j=JSON.stringify(A);try{localStorage.setItem(KEY,j)}catch(e){}pushDb(j)}
+function pushDb(j){if(!DB)return;clearTimeout(dbt);dbt=setTimeout(function(){DB.set({json:j,ts:A.ts}).then(function(){setSv('Saved to your account ✓')},function(){setSv('Saved on this device only')})},600)}
+function setSv(t){var e=$('sv');if(e)e.textContent=t}
+function esc(t){return String(t).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function $(id){return document.getElementById(id)}
+function toast(t){var e=$('toast');e.textContent=t;e.className='toast show';clearTimeout(toast.h);toast.h=setTimeout(function(){e.className='toast'},1800)}
+function pos(mode,f){var c=M[mode],rows=F[f],R=rows.length,bot=c.gk-19,a=[{x:50,y:c.gk}],r,i,n,y,x;
+ for(r=0;r<R;r++){n=rows[r];y=R>1?bot-r*(bot-c.top)/(R-1):bot;
+  for(i=0;i<n;i++){x=n<=3?(i+1)/(n+1)*100:12+i*76/(n-1);a.push({x:x,y:y})}}
+ return a}
+function lines(){if(isH())return mlinesH();return '<svg viewBox="0 0 68 88" preserveAspectRatio="none" fill="none" stroke="#ffffff99" stroke-width=".45"><rect x="2" y="2" width="64" height="84"/><line x1="2" y1="44" x2="66" y2="44"/><circle cx="34" cy="44" r="8"/><rect x="14" y="2" width="40" height="15"/><rect x="25" y="2" width="18" height="6"/><rect x="14" y="71" width="40" height="15"/><rect x="25" y="80" width="18" height="6"/><path d="M26 17a8 8 0 0 0 16 0M26 71a8 8 0 0 1 16 0"/></svg>'}
+function renderTabs(){var h='';Object.keys(M).forEach(function(k){h+='<button data-m="'+k+'" class="'+(s.mode===k?'on':'')+'">'+M[k].ic+' '+M[k].t+'</button>'});$('tabs').innerHTML=h}
+function renderFm(){var h='',cur=s.m[s.mode].f;Object.keys(F).forEach(function(k){h+='<button data-f="'+k+'" class="'+(cur===k?'on':'')+'">'+k+'</button>'});$('fm').innerHTML=h;
+ var on=$('fm').querySelector('.on');if(on&&on.scrollIntoView)try{on.scrollIntoView({block:'nearest',inline:'center'})}catch(e){}}
+function renderPitch(){hzS();var m=s.m[s.mode],ps=pos(s.mode,m.f),rl=roles(m.f),h=lines()+'<div class="tag">'+m.f+'</div>'+arrows(m);
+ m.pl.forEach(function(id,i){var p=s.r[id]||{n:'',u:''},q=(m.cx&&m.cx[i])||ps[i];if(!q)return;q=sq(q);var ro=rl[i]||'';
+  h+='<div class="p'+(i===0?' gk':'')+(sel&&sel.t==='p'&&sel.i===i?' sel':'')+'" data-p="'+i+'" style="left:'+q.x+'%;top:'+q.y+'%;--c:'+rc(ro)+'"><i class="kit"><svg viewBox="0 0 60 56">'+shirt(rc(ro),'#ffffff','',ro,14)+'</svg></i><u>'+esc(p.u||'')+'</u>'+(s.cap===id?'<s class="cb">C</s>':'')+'<b>'+esc(p.n||'—')+'</b></div>'});
+ $('pitch').innerHTML=h}
+function renderBench(){var H={G:'',D:'',M:'',A:''};s.m[s.mode].b.forEach(function(id,i){var p=s.r[id]||{n:'',u:''},g=grp(p);H[g]+='<button class="b g'+g+(sel&&sel.t==='b'&&sel.i===i?' sel':'')+'" data-b="'+i+'"><em>'+esc(p.u||'')+'</em><span>'+esc(p.n||'—')+'</span>'+(s.cap===id?'<small class="cbd">C</small>':'')+'</button>'});
+ var h='';[['G','Goalkeepers'],['D','Defenders'],['M','Midfielders'],['A','Forwards']].forEach(function(c){h+='<div class="bg"><h4>'+c[1]+'</h4><div class="bench">'+H[c[0]]+'<button class="b add" data-add="'+c[0]+'">+</button></div></div>'});$('bench').innerHTML=h}
+function cur(){return sel?s.r[sel.t==='p'?s.m[s.mode].pl[sel.i]:s.m[s.mode].b[sel.i]]:null}
+function renderEd(){var p=cur(),c=$('edcard');if(!p){c.hidden=true;return}
+ c.hidden=false;$('edt').textContent=sel.t==='p'?(sel.i===0?'Goalkeeper':'Starter'):'Substitute';
+ $('edn').value=p.n;$('edu').value=p.u;$('edg').value=grp(p);var cid=sel.t==='p'?s.m[s.mode].pl[sel.i]:s.m[s.mode].b[sel.i];$('ecp').textContent=s.cap===cid?'★ Captain (tap to remove)':'☆ Make captain';$('edx').hidden=sel.t!=='b';$('ea').hidden=sel.t!=='p';$('ea').textContent=arrowMode?'Now tap the pitch…':'Draw run arrow';var ar0=s.m[s.mode].ar;$('eac').hidden=!(sel.t==='p'&&ar0&&ar0[sel.i])}
+function renderNote(){$('cm').hidden=s.mode==='main';$('note').value=s.m[s.mode].note;$('nt').textContent=M[s.mode].nt}
+function all(){renderTeams();renderTabs();renderFm();renderPitch();renderBench();renderEd();renderNote()}
+function tap(t,i){
+ if(!sel){sel={t:t,i:i}}
+ else if(sel.t===t&&sel.i===i){sel=null}
+ else{swp(s,s.mode,sel.t,sel.i,t,i);sel=null;save();toast('Swapped ✓')}
+ renderPitch();renderBench();renderEd()}
+$('tabs').onclick=function(e){var b=e.target.closest('[data-m]');if(!b)return;s.mode=b.dataset.m;sel=null;save();renderTabs();renderFm();renderPitch();renderBench();renderEd();renderNote()};
+$('fm').onclick=function(e){var b=e.target.closest('[data-f]');if(!b)return;var mm=s.m[s.mode];mm.f=b.dataset.f;mm.cx={};mm.ar={};save();renderFm();renderPitch()};
+var dr=null;
+$('pitch').addEventListener('pointerdown',function(e){var b=e.target.closest('[data-p]');if(!b)return;dr={i:+b.dataset.p,el:b,sx:e.clientX,sy:e.clientY,mv:false};try{b.setPointerCapture(e.pointerId)}catch(x){}});
+$('pitch').addEventListener('pointermove',function(e){if(!dr)return;if(!dr.mv&&Math.abs(e.clientX-dr.sx)+Math.abs(e.clientY-dr.sy)<8)return;dr.mv=true;dr.el.classList.add('drag');var r=this.getBoundingClientRect();dr.x=Math.max(4,Math.min(96,(e.clientX-r.left)/r.width*100));dr.y=Math.max(4,Math.min(96,(e.clientY-r.top)/r.height*100));dr.el.style.left=dr.x+'%';dr.el.style.top=dr.y+'%'});
+$('pitch').addEventListener('pointerup',function(e){var d=dr;dr=null;var m=s.m[s.mode];if(d){d.el.classList.remove('drag');if(d.mv){m.cx=m.cx||{};m.cx[d.i]=sqi(d.x,d.y);save();renderPitch()}else{tap('p',d.i)}return}if(arrowMode&&sel&&sel.t==='p'){var r=this.getBoundingClientRect();m.ar=m.ar||{};m.ar[sel.i]=sqi((e.clientX-r.left)/r.width*100,(e.clientY-r.top)/r.height*100);arrowMode=false;save();renderPitch();renderEd()}});
+$('pitch').addEventListener('pointercancel',function(){dr=null;renderPitch()});
+$('bench').onclick=function(e){var b=e.target.closest('[data-b]');if(b){tap('b',+b.dataset.b);return}
+ if(e.target.closest('[data-add]')){var d=s.m[s.mode];if(d.b.length>=20){toast('Maximum 20 subs');return}addPlayer(String(Object.keys(s.r).length+1),e.target.closest('[data-add]').dataset.add);save();renderBench()}};
+$('edn').oninput=function(){var p=cur();if(!p)return;p.n=this.value;save();renderPitch();renderBench()};
+$('edu').oninput=function(){var p=cur();if(!p)return;p.u=this.value.slice(0,3);save();renderPitch();renderBench()};
+$('edc').onclick=function(){sel=null;renderPitch();renderBench();renderEd()};
+$('edx').onclick=function(){if(sel&&sel.t==='b'){removePlayer(s.m[s.mode].b[sel.i]);sel=null;save();renderBench();renderEd()}};
+$('coach').oninput=function(){s.coach=this.value;save()};
+$('team').oninput=function(){s.team=this.value;save();renderTeams()};
+$('note').oninput=function(){s.m[s.mode].note=this.value;save()};
+$('cm').onclick=function(){var d=s.m[s.mode];if(s.mode==='main')return;if(!confirm("Replace this mode's players with the Starting XI?"))return;d.pl=JSON.parse(JSON.stringify(s.m.main.pl));d.b=JSON.parse(JSON.stringify(s.m.main.b));sel=null;save();renderPitch();renderBench();renderEd();toast('Players copied')};
+$('cp').onclick=function(){var f=s.m[s.mode].f;Object.keys(s.m).forEach(function(k){s.m[k].f=f;s.m[k].cx={};s.m[k].ar={}});save();renderFm();renderPitch();toast(f+' applied to all modes')};
+$('rs').onclick=function(){if(confirm('Clear this team?')){s=def();A.teams[A.cur]=s;sel=null;save();$('coach').value='';$('team').value='';all()}};
+function showShare(t){var e=$('sht');e.value=t;$('sh').hidden=false;e.focus();e.select();try{e.setSelectionRange(0,99999)}catch(x){}}
+$('shx').onclick=function(){$('sh').hidden=true};
+$('shc').onclick=function(){var e=$('sht'),ok=false;e.focus();e.select();try{e.setSelectionRange(0,99999);ok=document.execCommand('copy')}catch(x){}if(ok){toast('Copied')}else if(navigator.clipboard){navigator.clipboard.writeText(e.value).then(function(){toast('Copied')},function(){toast('Select the text and copy it')})}else{toast('Select the text and copy it')}};
+$('shs').onclick=function(){if(navigator.share){navigator.share({text:$('sht').value}).catch(function(){toast('Sharing is blocked here, use Copy')})}else{toast('Sharing is not available, use Copy')}};
+$('share').onclick=function(){var t='🏟 '+(s.team||'Team')+' | Coach: '+(s.coach||'—')+'\n';
+ Object.keys(M).forEach(function(k){var f=s.m[k].f,ps=s.m[k].pl.map(function(id){var q=s.r[id]||{n:'',u:''};return id===s.cap?{n:(q.n||'—')+' (C)',u:q.u}:q});t+='\n'+M[k].ic+' '+M[k].t+' ('+f+')\n';
+  t+=ps.map(function(p){return (p.u?p.u+'. ':'')+(p.n||'—')}).join(', ')+'\n';if(s.m[k].note)t+='📝 '+s.m[k].note+'\n'});
+ t+='\n🪑 Subs: '+Object.keys(M).map(function(k){return M[k].t+': '+s.m[k].b.map(function(id){return s.r[id]}).filter(function(p){return p&&p.n}).map(function(p){return p.u+'. '+p.n}).join(', ')}).join(' | ');
+ showShare(t);if(true){}
+ else if(navigator.clipboard){navigator.clipboard.writeText(t).then(function(){toast('Copied')},function(){toast('Could not copy')})}};
+var PM=null;
+function G2(l){return l==='GK'?'G':/^(CB|LB|RB|LWB|RWB|LCB|RCB)$/.test(l)?'D':/^(DM|CM|AM|LM|RM)$/.test(l)?'M':'A'}
+function grp(p){if(p.g)return p.g;if(!PM){PM={};[PRE,PRE2].forEach(function(L){L.forEach(function(x){(String(x).split('|')[5]||'').split(';').forEach(function(t){var a=t.split(' '),nm=/^\d+$/.test(a[1])?a.slice(2).join(' '):a.slice(1).join(' ');PM[nm]=G2(a[0])})})})}return PM[p.n]||'M'}
+$('edg').onchange=function(){var p=cur();if(!p)return;p.g=this.value;save();renderBench()};
+function mig(t){if(!t.r){t.r={};t.nid=1;var by={};Object.keys(t.m).forEach(function(k){var c=t.m[k];function f(p){var key=p.n?'n:'+p.n:'u:'+p.u;if(by[key])return by[key];var id='p'+(t.nid++);t.r[id]={n:p.n||'',u:p.u||''};by[key]=id;return id}c.pl=c.pl.map(f);c.b=c.b.map(f)})}
+ Object.keys(t.r).forEach(function(id){Object.keys(t.m).forEach(function(k){var c=t.m[k];if(c.pl.indexOf(id)<0&&c.b.indexOf(id)<0)c.b.push(id)})})}
+function addPlayer(u,g){var id='p'+(s.nid++);s.r[id]={n:'',u:u,g:g||'M'};Object.keys(s.m).forEach(function(k){s.m[k].b.push(id)})}
+function removePlayer(id){Object.keys(s.m).forEach(function(k){var c=s.m[k],bi=c.b.indexOf(id),pi=c.pl.indexOf(id);if(bi>-1)c.b.splice(bi,1);if(pi>-1){var nd='p'+(s.nid++);s.r[nd]={n:'',u:''};c.pl[pi]=nd}});delete s.r[id]}
+function roles(f){var rows=F[f],R=rows.length,a=['GK'],r,n,i,L=R>1&&rows[R-1]<=3,mc=L?R-2:R-1;
+for(r=0;r<R;r++){n=rows[r];var l=[];
+ if(r===0){l={2:['CB','CB'],3:['LCB','CB','RCB'],4:['LB','LCB','RCB','RB'],5:['LWB','LCB','CB','RCB','RWB']}[n]||[]}
+ else if(r===R-1&&L){l={1:['ST'],2:['ST','ST'],3:['LW','ST','RW']}[n]}
+ else{var k=mc<2?'C':(r===1?'D':(r===mc?'A':'C'));
+  if(n<=2){for(i=0;i<n;i++)l.push({D:'DM',C:'CM',A:'AM'}[k])}
+  else if(n===3){l=k==='A'?['LW','AM','RW']:k==='D'?['CM','DM','CM']:['CM','CM','CM']}
+  else{for(i=0;i<n;i++)l.push(i===0?(k==='A'?'LW':'LM'):i===n-1?(k==='A'?'RW':'RM'):(k==='A'?'AM':'CM'))}}
+ a=a.concat(l)}
+return a}
+function fam(r){return{LCB:'CB',RCB:'CB',LWB:'LB',RWB:'RB',LM:'LW',RM:'RW'}[r]||r}
+function rc(r){return r==='GK'?'#facc15':/B$/.test(r)?'#2563eb':/^(LW|RW|ST)$/.test(r)?'#dc2626':'#16a34a'}
+var RL={'CB-LB':4,'CB-RB':4,'LB-RB':5,'DM-CM':7,'CM-AM':7,'DM-AM':4,'AM-LW':5,'AM-RW':5,'AM-ST':5,'LW-RW':6,'LW-ST':5,'RW-ST':5,'CM-LW':3,'CM-RW':3,'LB-DM':3,'RB-DM':3,'LB-LW':3,'RB-RW':3,'CB-DM':3};
+function score(a,b){if(a==='GK'||b==='GK')return a===b?100:-100;if(a===b)return 10;return RL[a+'-'+b]||RL[b+'-'+a]||1}
+var PRE=[
+'Manchester United||4-2-3-1|3-2-4-1|5-4-1|GK Lammens;RB Dalot;CB Yoro;CB L. Martínez;LB Shaw;DM Casemiro;DM Ugarte;RW Mbeumo;AM B. Fernandes;LW Cunha;ST Sesko;GK Bayındır;CB Maguire;CB Heaven;RB Mazraoui;LB Dorgu;CM Mainoo;RW Amad',
+'Manchester City|Pep Guardiola|4-3-3|3-2-4-1|4-4-2|GK Donnarumma;RB Nunes;CB Dias;CB Gvardiol;LB Aït-Nouri;CM Rodri;CM Reijnders;CM B. Silva;RW Semenyo;ST Haaland;LW Doku;GK Trafford;CB Guéhi;CB Aké;RB Lewis;CM Foden;AM Cherki;ST Marmoush',
+'Chelsea|Liam Rosenior|4-2-3-1|3-2-4-1|4-5-1|GK Sánchez;RB Gusto;CB Colwill;CB Chalobah;LB Cucurella;DM Caicedo;DM Enzo Fernández;RW Estêvão;AM Palmer;LW Pedro Neto;ST João Pedro;GK Jørgensen;CB Fofana;CB Badiashile;RB James;CM Lavia;LW Garnacho;ST Delap',
+'Arsenal|Mikel Arteta|4-3-3|3-2-4-1|4-4-2|GK Raya;RB Timber;CB Saliba;CB Gabriel;LB Calafiori;CM Zubimendi;CM Rice;CM Ødegaard;RW Saka;ST Gyökeres;LW Martinelli;GK Kepa;CB Mosquera;RB White;LB Hincapié;CM Merino;AM Eze;ST Havertz',
+'Liverpool|Arne Slot|4-2-3-1|3-2-4-1|4-5-1|GK Alisson;RB Frimpong;CB Konaté;CB Van Dijk;LB Kerkez;DM Gravenberch;DM Mac Allister;RW Salah;AM Wirtz;LW Gakpo;ST Ekitike;GK Mamardashvili;CB Gomez;RB Bradley;LB Robertson;CM Szoboszlai;CM Jones;ST Isak',
+'Tottenham||4-2-3-1|2-3-4-1|4-5-1|GK Vicario;RB Porro;CB Romero;CB Van de Ven;LB Udogie;DM Palhinha;DM Bentancur;RW Kudus;AM Simons;LW Tel;ST Solanke;GK Kinský;CB Danso;RB Spence;LB Davies;CM Sarr;AM Maddison;ST Richarlison',
+'Bayern Munich|Vincent Kompany|4-2-3-1|3-2-4-1|4-4-2|GK Neuer;RB Laimer;CB Upamecano;CB Tah;LB Davies;DM Kimmich;DM Pavlović;RW Olise;AM Musiala;LW Díaz;ST Kane;GK Urbig;CB Kim;RB Stanišić;LB Guerreiro;CM Goretzka;RW Gnabry;ST Jackson',
+'Borussia Dortmund|Niko Kovač|4-2-3-1|3-2-4-1|4-4-2|GK Kobel;RB Ryerson;CB Schlotterbeck;CB Anton;LB Bensebaini;DM Nmecha;DM Sabitzer;RW Adeyemi;AM Brandt;LW Gittens;ST Guirassy;GK Meyer;CB Süle;RB Couto;LB Svensson;CM Can;AM Beier;ST Silva',
+'AC Milan|Massimiliano Allegri|3-5-2|3-4-3|5-3-2|GK Maignan;CB Tomori;CB Pavlović;CB Gabbia;LW Leão;CM Fofana;CM Modrić;CM Rabiot;RW Saelemaekers;ST Pulisic;ST Giménez;GK Terracciano;LB Estupiñán;CM Ricci;CM Loftus-Cheek;RB Athekame;ST Nkunku;CB De Winter',
+'Inter|Cristian Chivu|3-5-2|3-4-3|5-3-2|GK Sommer;CB Akanji;CB Pavard;CB Bastoni;LW Dimarco;CM Barella;CM Çalhanoğlu;CM Mkhitaryan;RW Dumfries;ST Lautaro;ST Thuram;GK J. Martínez;CB Acerbi;CB Bisseck;RB Darmian;CM Zielinski;CM Frattesi;ST Esposito',
+'Juventus|Luciano Spalletti|4-2-3-1|3-4-2-1|5-4-1|GK Di Gregorio;RB Kalulu;CB Bremer;CB Kelly;LB Cambiaso;DM Locatelli;DM K. Thuram;RW Conceição;AM Koopmeiners;LW Yildiz;ST Vlahović;GK Perin;CB Gatti;LB Cabal;CM McKennie;CM Miretti;ST David;ST Openda',
+'Napoli|Antonio Conte|4-1-4-1|3-4-3|4-5-1|GK Milinković-Savić;RB Di Lorenzo;CB Rrahmani;CB Buongiorno;LB Olivera;DM Lobotka;LW Neres;AM McTominay;AM De Bruyne;RW Politano;ST Højlund;GK Meret;CB Beukema;LB Spinazzola;RB Mazzocchi;CM Anguissa;LW Lang;ST Lucca',
+'Roma|Gian Piero Gasperini|3-4-2-1|3-4-3|5-4-1|GK Svilar;CB Mancini;CB Ndicka;CB Hermoso;LW Wesley;CM Cristante;CM Koné;RW Çelik;AM Soulé;AM Dybala;ST Ferguson;GK Gollini;CB Ziółkowski;RB Rensch;LB Angeliño;CM Pisilli;LW El Shaarawy;ST Dovbyk',
+'Como|Cesc Fàbregas|4-2-3-1|3-2-4-1|4-4-2|GK Butez;RB Vojvoda;CB Diego Carlos;CB Kempf;LB Valle;DM Perrone;DM Da Cunha;RW Strefezza;AM Nico Paz;LW J. Rodríguez;ST Douvikas;GK Reina;CB Smolčić;LB Moreno;AM Baturina;CM Caqueret;RW Fadera;ST Morata',
+'Real Madrid|Álvaro Arbeloa|4-3-3|2-3-4-1|4-4-2|GK Courtois;RB Carvajal;CB Rüdiger;CB Militão;LB Carreras;CM Tchouaméni;CM Valverde;CM Bellingham;RW Mastantuono;ST Mbappé;LW Vinícius Jr;GK Lunin;CB Huijsen;CB Asencio;RB Alexander-Arnold;LB Mendy;CM Camavinga;AM Güler',
+'Barcelona|Hansi Flick|4-2-3-1|2-3-4-1|4-4-2|GK J. García;RB Koundé;CB Cubarsí;CB Araújo;LB Balde;DM De Jong;DM Pedri;RW Yamal;AM Olmo;LW Raphinha;ST Lewandowski;GK Szczęsny;CB E. García;LB G. Martín;CM Casadó;AM Fermín;LW Rashford;ST Ferran',
+'Atlético Madrid|Diego Simeone|4-4-2|3-5-2|5-4-1|GK Oblak;RB Molina;CB Giménez;CB Le Normand;LB Ruggeri;LW Almada;CM Koke;CM De Paul;RW G. Simeone;ST Álvarez;ST Griezmann;GK Musso;CB Hancko;RB Llorente;CM Barrios;CM Gallagher;LW Baena;ST Sørloth'];
+var PRE2=[
+'Manchester City|Enzo Maresca|4-2-3-1|3-2-4-1|4-4-2|GK 1 Donnarumma;RB 27 Nunes;CB 3 Dias;CB 24 Gvardiol;LB 21 Aït-Nouri;DM 5 Anderson;DM 17 Enzo Fernández;RW 7 Ndiaye;AM 10 Cherki;LW 11 Doku;ST 9 Haaland;GK 13 Bettinelli;GK 28 Rulli;CB 6 Guéhi;CB 22 Reis;CB 45 Khusanov;RB 82 Lewis;LB 33 O\'Reilly;LB 97 Wilson-Esbrand;DM 8 Kovačić;DM 32 Bouaddi;AM 47 Foden;RW 42 Semenyo;RW 37 Allan;RW 56 McAidoo',
+'Chelsea|Xabi Alonso|4-2-3-1|3-2-4-1|4-5-1|GK 1 E. Martínez;RB 27 Gusto;CB 3 Fofana;CB 6 Colwill;LB 29 Chavarría;DM 25 Caicedo;DM 45 Lavia;RW 41 Estêvão;AM 10 Palmer;LW 7 Neto;ST 9 João Pedro;GK 28 Sharman-Lowe;GK 39 Penders;GK 44 Słonina;RB 34 Acheampong;RB 2 Palestra;RB 24 R. James;CB 5 Lacroix;CB 30 Anselmino;LB 21 Hato;DM 4 Barco;DM 14 Henderson;AM 17 Rogers;LW 11 Gittens;LW 23 Quenda;ST 18 Welbeck;ST 22 Emegha',
+'Arsenal|Mikel Arteta|4-3-3|3-2-4-1|4-5-1|GK 1 Raya;RB 4 White;CB 2 Saliba;CB 6 Gabriel;LB 33 Calafiori;CM 41 Rice;CM 8 Ødegaard;CM 36 Zubimendi;RW 20 Madueke;ST 14 Gyökeres;LW 10 Eze;GK 13 Kepa;GK 30 Meslier;RB 12 Timber;CB 3 Mosquera;CB 15 Konsa;LB 5 Hincapié;CM 23 Merino;CM 39 Bruno Guimarães;CM 49 Lewis-Skelly;RW 7 Saka;RW 56 Dowman;LW 17 Tzolis;ST 29 Havertz',
+'Manchester United|Michael Carrick|4-2-3-1|3-2-4-1|5-4-1|GK 1 Lammens;RB 2 Dalot;CB 15 Yoro;CB 6 L. Martínez;LB 23 Shaw;DM 37 Mainoo;DM 17 Santos;RW 19 Mbeumo;AM 8 B. Fernandes;LW 10 Cunha;ST 30 Šeško;GK 12 Darlow;GK 22 Heaton;GK 45 Mee;CB 4 De Ligt;CB 5 Maguire;CB 26 Heaven;CB 33 Fredricson;CB 35 León;RB 3 Mazraoui;LB 13 Dorgu;LB 41 Amass;DM 25 Ugarte;DM 20 Baleba;CM 18 Tielemans;CM 7 Mount;CM 39 T. Fletcher;RW 16 Amad;LW 9 Rashford;ST 11 Zirkzee;ST 32 Obi;ST 46 Lacey',
+'Manchester United|Mauricio Pochettino|4-2-3-1|3-2-4-1|5-4-1|GK 1 Lammens;RB 2 Dalot;CB 15 Yoro;CB 6 L. Martínez;LB 3 Mazraoui;DM 37 Mainoo;DM 17 Santos;RW 19 Mbeumo;AM 8 B. Fernandes;LW 10 Cunha;ST 11 Zirkzee;GK 12 Darlow;GK 22 Heaton;GK 45 Mee;CB 4 De Ligt;CB 5 Maguire;CB 26 Heaven;LB 23 Shaw;LB 41 Amass;LB 13 Dorgu;DM 20 Baleba;DM 25 Ugarte;CM 18 Tielemans;CM 7 Mount;AM 38 J. Fletcher;CM 39 T. Fletcher;RW 16 Amad;RW 31 Lacey;LW 9 Rashford;ST 30 Šeško|3',
+'Liverpool|Andoni Iraola|4-2-3-1|3-2-4-1|4-5-1|GK 1 Alisson;RB 2 Gomez;CB 4 Van Dijk;CB 5 Jacquet;LB 6 Kerkez;DM 10 Mac Allister;DM 38 Gravenberch;RW 29 Barcola;AM 7 Wirtz;LW 18 Gakpo;ST 9 Isak;GK 25 Mamardashvili;GK 28 Woodman;GK 56 Jaroš;GK 95 H. Davies;RB 12 Bradley;RB 30 Frimpong;CB 33 Araujo;CB 15 Leoni;LB 21 Tsimikas;DM 3 Endo;DM 42 Nyoni;DM 53 McConnell;CM 8 Szoboszlai;RW 14 Chiesa;LW 23 Muñoz;LW 73 Ngumoha;ST 22 Ekitiké;ST 67 Koumas|3'];
+PRE2.push('Tottenham|Roberto De Zerbi|4-2-3-1|2-3-4-1|4-5-1|GK 31 Kinský;RB 23 Porro;CB 37 Van de Ven;CB 6 Van Hecke;LB 3 Robertson;DM 16 Tonali;DM 14 Gray;RW 20 Kudus;AM 10 Maddison;LW 22 Marmoush;ST 9 Richarlison;GK 39 Dúbravka;GK 40 Austin;CB 4 Adarabioyo;CB 5 Senesi;CB 33 Davies;LB 13 Udogie;DM 30 Bentancur;CM 15 Bergvall;CM 18 M. Fernandes;AM 7 Simons;AM 8 Gallagher;AM 68 Williams-Barnett;RW 17 Sávio;RW 28 Odobert;LW 11 Tel;LW 27 Mudryk;ST 21 Kulusevski;ST 19 Solanke|4');
+PRE2.push('Bayern Munich|Vincent Kompany|4-2-3-1|3-2-4-1|4-4-2|GK 40 Urbig;RB 27 Laimer;CB 2 Upamecano;CB 4 Tah;LB 11 N. Brown;DM 6 Kimmich;DM 45 Pavlović;RW 17 Olise;AM 42 Karl;LW 19 Davies;ST 9 Kane;GK 1 Neuer;GK 26 Ulreich;RB 23 Boey;RB 44 Stanišić;CB 3 Kim;CB 21 Ito;DM 8 Bischof;DM 39 Ndiaye;AM 10 Musiala;AM 34 Saibari;LW 7 Gnabry;LW 14 Díaz|4');
+PRE2.push('Borussia Dortmund|Niko Kovač|4-2-3-1|3-2-4-1|4-4-2|GK 1 Kobel;RB 26 Ryerson;CB 4 Schlotterbeck;CB 5 Bensebaini;LB 24 Svensson;DM 7 J. Bellingham;DM 8 Nmecha;RW 19 Karetsas;AM 18 Nwaneri;LW 14 Beier;ST 9 Guirassy;GK 30 Drewes;GK 33 Meyer;CB 3 Anton;CB 23 Can;CB 22 Gadou;LB 36 Prates;DM 20 Sabitzer;DM 25 Veerman;AM 17 Chukwuemeka;AM 40 Inácio;AM 45 Konstantelias;ST 21 F. Silva|4');
+PRE2.push('AC Milan|Ruben Amorim|3-4-2-1|3-4-3|5-4-1|GK 16 Maignan;CB 5 De Winter;CB 31 Pavlović;CB 34 Gila;LW 2 Estupiñán;CM 12 Rabiot;CM 14 Modrić;RW 20 Hutchinson;AM 11 Pulisic;AM 70 A. Cissè;ST 9 Gonçalo Ramos;GK 1 Terracciano;GK 96 Torriani;GK 41 Bouyer;CB 23 Tomori;CB 13 Diawara;CB 42 F. Terracciano;CB 46 Gabbia;CB 35 Vladimirov;CB 48 El Hadji Cisse;CM 80 Musah;CM Bondo;CM 28 Comotto;CM 30 Jashari;CM 49 Menon;CM 79 M. Cisse;RW 56 Saelemaekers;LW 33 Bartesaghi;LW 21 Chukwueze;RW 22 Moreira;AM 8 Loftus-Cheek;AM 25 Mul-Balentien;ST 73 Camarda|4');
+PRE2.push('Inter|Cristian Chivu|3-5-2|3-4-3|5-3-2|GK 1 J. Martínez;CB 6 Stones;CB 31 Bisseck;CB 95 Bastoni;LW 32 Dimarco;CM 23 Barella;CM 20 Çalhanoğlu;CM 7 Zieliński;RW 11 Luis Henrique;ST 10 Lautaro Martínez;ST 94 Esposito;GK 12 Di Gennaro;GK 49 Provedel;CB 25 Akanji;CB 28 Pavard;CB 30 Carlos Augusto;RB 99 Spence;DM 5 Stanković;CM 21 Jones;CM 8 Sučić;CM 22 Mkhitaryan;RW 17 Diouf;RW 48 Mosconi;ST 9 Thuram;ST 14 Bonny|4');
+PRE2.push('Juventus|Luciano Spalletti|4-2-3-1|3-4-2-1|5-4-1|GK 25 Vicario;RB 15 Kalulu;CB 3 Bremer;CB 26 Lucumí;LB 20 Cambiaso;DM 12 Douglas Luiz;DM 8 Koopmeiners;RW 7 Conceição;AM 22 McKennie;LW 10 Yıldız;ST 27 Woltemade;GK 23 Pinsoglio;GK 1 Grabara;GK 33 Neto;CB 4 Gatti;CB 6 Kelly;CB 24 Rugani;RB 2 Çelik;LB 32 Cabal;DM 5 Locatelli;DM 19 K. Thuram;DM 29 Sarr;CM 41 Owusu;LW 31 N. González;LW 17 Alajbegović;RW 11 Zhegrova;LW 13 Boga;ST 9 Kolo Muani;ST 14 Milik;ST 18 Ekhator|4');
+PRE2.push('Napoli|Massimiliano Allegri|4-1-4-1|3-4-3|4-5-1|GK 32 Milinković-Savić;RB 22 Di Lorenzo;CB 13 Rrahmani;CB 31 Beukema;LB 17 Olivera;DM 6 Gilmour;LW 70 Lang;AM 8 McTominay;AM 11 De Bruyne;RW 7 Neres;ST 19 Højlund;GK 1 Meret;GK 12 Pugliese;GK 14 Contini;CB 4 Buongiorno;CB 5 Badiashile;CB 16 Rafa Marín;CB 35 Marianucci;RB 2 Favasuli;RW 21 Politano;LB 37 Spinazzola;DM 68 Lobotka;CM 99 Anguissa;AM 26 Vergara;LW 27 Alisson Santos;ST 20 Lucca;ST 23 Giovane|4');
+PRE2.push('Roma|Gian Piero Gasperini|3-4-2-1|3-4-3|5-4-1|GK 99 Svilar;CB 5 N\'Dicka;CB 23 Mancini;CB 22 Hermoso;LW 43 Wesley;CM 17 Koné;CM 4 Cristante;RW 20 Molina;AM 18 Soulé;AM 86 Mora;ST 14 Malen;GK 12 Kilvinger;GK 32 Vásquez;GK 95 Gollini;CB 3 Koulierakis;CB 26 Balerdi;CB 87 Ghilardi;RB 2 Rensch;RB 77 Lulli;DM 15 De Roon;DM 61 Pisilli;CM 63 Di Nunzio;AM 7 Pellegrini;AM 21 Dybala;ST 9 Castro;ST 68 Arena|4');
+PRE2.push('Como|Cesc Fàbregas|4-2-3-1|3-2-4-1|4-4-2|GK 1 Butez;RB 27 Yan Couto;CB 4 Jacobo Ramón;CB 2 Kempf;LB 3 Valle;DM 5 Perrone;DM 7 Da Cunha;RW 30 Liberali;AM 10 Nico Paz;LW 20 Baturina;ST 9 Douvikas;GK 12 Ginelli;GK 22 Vigorito;GK 97 R. Sánchez;CB 13 Dossena;CB 18 Goldaniga;CB 31 Asfour;CB 53 Kambwala;CB 99 Chalobah;RB 28 Smolčić;LB 16 Kaiki;DM 6 Milla;CM 21 Ricci;LW 15 Lahdo;AM 8 Caqueret;AM 54 Papaccioli;RW 11 Diao;RW 42 Addai;LW 17 J. Rodríguez;ST 90 Kean|4');
+PRE2.push('Tottenham|Roberto De Zerbi|4-2-3-1|2-3-4-1|4-5-1|GK 31 Kinský;RB 14 Gray;CB 6 van Hecke;CB 37 van de Ven;LB 3 Robertson;DM 16 Tonali;DM 30 Bentancur;RW 20 Kudus;AM 18 Mateus Fernandes;LW 11 Tel;ST 22 Marmoush;GK 39 Dúbravka;GK 40 Austin;CB 4 Adarabioyo;CB 5 Senesi;CB 33 Davies;LB 13 Udogie;RB 23 Porro;CM 8 Gallagher;AM 7 Simons;AM 10 Maddison;CM 15 Bergvall;RW 17 Sávio;RW 21 Kulusevski;LW 27 Mudryk;LW 28 Odobert;ST 19 Solanke;ST 9 Richarlison|5');
+PRE2.push('Bayern Munich|Vincent Kompany|4-2-3-1|3-2-4-1|4-4-2|GK 1 Neuer;RB 27 Laimer;CB 2 Upamecano;CB 4 Tah;LB 19 Davies;DM 6 Kimmich;DM 45 Pavlović;RW 17 Olise;AM 10 Musiala;LW 14 Díaz;ST 9 Kane;GK 40 Urbig;GK 26 Ulreich;CB 3 Kim Min-jae;CB 21 Ito;RB 44 Stanišić;RB 23 Boey;LB 11 Brown;DM 8 Bischof;CM 39 Ndiaye;AM 34 Saibari;AM 42 Karl;LW 7 Gnabry|5');
+PRE2.push('Borussia Dortmund|Niko Kovač|4-2-3-1|3-2-4-1|4-4-2|GK 1 Kobel;RB 26 Ryerson;CB 3 Anton;CB 4 Schlotterbeck;LB 24 Svensson;DM 8 Nmecha;DM 25 Veerman;RW 14 Beier;AM 7 Bellingham;LW 21 Fábio Silva;ST 9 Guirassy;GK 33 Meyer;GK 30 Drewes;GK 31 Ostrzinski;CB 5 Bensebaïni;CB 22 Gadou;CB 39 Mané;CB 49 Reggiani;LB 36 Prates;DM 20 Sabitzer;CM 23 Can;CM 17 Chukwuemeka;CM 45 Konstantelias;AM 18 Nwaneri;AM 19 Karetsas;ST 40 Inácio;ST 41 Albert|5');
+PRE2.push('Real Madrid|José Mourinho|4-3-3|2-3-4-1|4-4-2|GK 1 Courtois;RB 24 Dumfries;CB 16 Konaté;CB 4 Huijsen;LB 17 Cucurella;CM 8 Valverde;CM 5 Bellingham;CM 15 Güler;RW 25 Diomande;LW 7 Vinícius;ST 10 Mbappé;GK 13 Lunin;GK 39 I. Voloshyn;CB 2 Asencio;CB 3 Militão;CB 22 Rüdiger;RB 12 Alexander-Arnold;LB 18 Álvaro Fernández;LB 23 Mendy;DM 6 Camavinga;DM 14 Tchouaméni;CM 20 Bernardo Silva;AM 21 Brahim Díaz;CM 27 Pitarch;RW 11 Rodrygo;ST 9 Endrick;ST 19 Espí|5');
+PRE2.push('Barcelona|Hansi Flick|4-3-3|2-3-4-1|4-4-2|GK 1 Joan García;RB 23 Koundé;CB 5 Cubarsí;CB 18 Gerard Martín;LB 2 Cancelo;CM 16 Rodri;CM 8 Pedri;CM 7 Fermín;RW 10 Yamal;LW 17 Gordon;ST 11 Raphinha;GK 13 Szczęsny;GK 25 Livaković;CB 15 Christensen;RB 24 Eric García;LB 3 Balde;LB 12 Espart;DM 22 Bernal;CM 4 Farinas;CM 6 Gavi;CM 21 de Jong;AM 20 Olmo;LW 14 Adeyemi;RW 19 Bardghji;ST 9 Gabriel Jesus;ST 74 Bisiwu|5');
+PRE2.push('Atlético Madrid|Diego Simeone|4-4-2|3-5-2|5-4-1|GK 13 Oblak;RB 14 Llorente;CB 17 Hancko;CB 18 Pubill;LB 22 Grimaldo;RW 20 Giuliano Simeone;CM 8 Pablo Barrios;CM 23 Hjulmand;LW 10 Baena;ST 11 Lookman;ST 7 Lee Kang-in;GK 1 Musso;CB 21 Romero;CB 24 Le Normand;CB 27 Dominguez;CB 30 Daniel Martínez;CM 5 Cardoso;CM 6 Koke;CM 3 Vargas;CM 4 Mendoza;ST 9 Sørloth;ST 15 David;LW 16 Ortiz;ST 19 Julián Álvarez|5');
+PRE2.push('AC Milan|Rúben Amorim|3-4-2-1|3-4-3|5-4-1|GK 16 Maignan;CB 5 De Winter;CB 31 Pavlović;CB 34 Gila;LB 2 Estupiñán;CM 12 Rabiot;CM 14 Modrić;RW 22 Moreira;AM 70 Cissè;AM 11 Pulišić;ST 9 Gonçalo Ramos;GK 1 Terracciano;GK 96 Torriani;CB 23 Tomori;CB 13 Bocoum;CB 46 Gabbia;CB 42 F. Terracciano;LB 33 Bartesaghi;AM 8 Loftus-Cheek;CM 30 Jashari;CM 80 Musah;CM 38 Bondo;CM 28 Comotto;RW 56 Saelemaekers;RW 20 Hutchinson;LW 21 Chukwueze;ST 25 Valletta;ST 73 Camarda|5');
+PRE2.push('Inter|Cristian Chivu|3-5-2|3-4-3|5-3-2|GK 1 Josep Martínez;CB 95 Bastoni;CB 25 Akanji;CB 31 Bisseck;LB 32 Dimarco;CM 23 Barella;CM 20 Çalhanoğlu;CM 7 Zieliński;RW 17 Diouf;ST 9 Thuram;ST 94 Esposito;GK 12 Di Gennaro;GK 49 Provedel;CB 6 Stones;CB 28 Pavard;CB 30 Carlos Augusto;RB 99 Spence;CM 5 Stanković;CM 8 Sučić;CM 21 Jones;CM 22 Mkhitaryan;RW 11 Luis Henrique;ST 10 Lautaro Martínez;ST 14 Bonny|5');
+PRE2.push('Juventus|Luciano Spalletti|4-3-3|3-4-2-1|5-4-1|GK 25 Vicario;RB 15 Kalulu;CB 3 Bremer;CB 26 Lucumí;LB 2 Çelik;CM 12 Douglas Luiz;CM 22 McKennie;CM 8 Koopmeiners;RW 7 Conceição;ST 9 Kolo Muani;LW 17 Alajbegović;GK 1 Grabara;GK 23 Pinsoglio;GK 33 Neto;CB 4 Gatti;CB 6 Kelly;CB 24 Rugani;CB 66 Pedro Felipe;LB 20 Cambiaso;LB 32 Cabal;DM 5 Locatelli;CM 19 K. Thuram;CM 29 Sarr;CM 73 Rouhi;AM 10 Yıldız;RW 11 Zhegrova;LW 13 Boga;LW 31 N. González;ST 14 Milik;ST 27 Woltemade;ST 18 Ekhator|5');
+PRE2.push('Napoli|Massimiliano Allegri|4-1-4-1|3-4-3|4-5-1|GK 1 Meret;RB 22 Di Lorenzo;CB 13 Rrahmani;CB 16 Rafa Marín;LB 17 Olivera;DM 68 Lobotka;LW 70 Lang;AM 11 De Bruyne;AM 8 McTominay;RW 21 Politano;ST 19 Højlund;GK 14 Contini;GK 32 Milinković-Savić;CB 4 Buongiorno;CB 5 Badiashile;CB 31 Beukema;CB 35 Marianucci;RB 2 Favasuli;LB 37 Spinazzola;DM 6 Gilmour;CM 99 Anguissa;CM 26 Vergara;RW 7 Neres;LW 27 Alisson Santos;ST 20 Lucca;ST 23 Giovane|5');
+PRE2.push('Roma|Gian Piero Gasperini|3-4-2-1|3-4-3|5-4-1|GK 95 Gollini;CB 22 Hermoso;CB 23 Mancini;CB 5 Ndicka;LB 43 Wesley;CM 4 Cristante;CM 17 Koné;RB 20 Molina;AM 18 Soulé;AM 21 Dybala;ST 14 Malen;GK 99 Svilar;GK 32 Vasquez;CB 3 Koulierakis;CB 26 Balerdi;CB 87 Ghilardi;RB 2 Rensch;DM 15 de Roon;CM 61 Pisilli;CM 8 Baldanzi;AM 7 Pellegrini;RW 77 Lulli;ST 9 Castro;ST 86 Mora|5');
+PRE2.push('Como|Cesc Fàbregas|4-2-3-1|3-2-4-1|4-4-2|GK 1 Butez;RB 27 Couto;CB 4 Naveros;CB 99 Chalobah;LB 3 Valle;DM 6 Milla;DM 5 Perrone;RW 20 Baturina;AM 10 Paz;LW 7 da Cunha;ST 9 Douvikas;GK 22 Vigorito;GK 97 Robert Lynch;CB 2 Kempf;CB 13 Dossena;CB 18 Goldaniga;CB 53 Ndengushi;LB 16 Kaiki;RB 28 Smolčić;AM 8 Caqueret;CM 21 Ricci;AM 30 Liberali;RW 11 Diao;LW 17 Jesús Rodríguez;LW 42 Addai;ST 90 Kean;ST 58 Kennedy|5');
+function build(str){var f=str.split('|'),t=def(),P=f[5].split(';').map(function(x){var a=x.split(' '),dg=/^\d+$/.test(a[1]);return{pos:a[0],u:dg?a[1]:'',n:dg?a.slice(2).join(' '):a.slice(1).join(' ')}});
+ t.team=f[0];t.coach=f[1];t.pv=+f[6]||2;t.r={};P.forEach(function(p,i){t.r['p'+i]={n:p.n,u:p.u||'',g:G2(p.pos)}});t.nid=P.length;
+ [['main',2],['attack',3],['defense',4]].forEach(function(a){var c=t.m[a[0]],rl,pr=[],used={},pl=[];c.f=f[a[1]];c.cx={};c.ar={};rl=roles(c.f);
+  rl.forEach(function(ro,si){P.forEach(function(p,i){pr.push([score(fam(ro),p.pos)+(i<11?5:0),si,i])})});
+  pr.sort(function(x,y){return y[0]-x[0]});var us={};pr.forEach(function(e){if(us[e[1]]!==undefined||used[e[2]])return;us[e[1]]=e[2];used[e[2]]=1});
+  rl.forEach(function(ro,si){pl.push('p'+us[si])});c.pl=pl;c.b=[];P.forEach(function(p,i){if(!used[i])c.b.push('p'+i)})});return t}
+function isBlank(t){return !t.team&&!t.coach&&Object.keys(t.r).every(function(k){return !t.r[k].n})}
+function seed(o){var u=PRE2.filter(function(x,i){return PRE2.map(function(y){return y.split('|')[0]}).lastIndexOf(x.split('|')[0])===i}).map(build),nm=PRE2.map(function(y){return y.split('|')[0]});
+ if(!o.seeded){var ts=u.concat(PRE.filter(function(x){return nm.indexOf(x.split('|')[0])<0}).map(build)),bl=o.teams.length===1&&isBlank(o.teams[0]);o.teams=bl?ts:o.teams.concat(ts);if(bl)o.cur=0;o.seeded=1;o.sv=4;return}
+ if(o.sv===4)return;
+ u.forEach(function(t){var k=-1;o.teams.forEach(function(x,i){if(x.team===t.team)k=i});if(k<0)o.teams.push(t);else if((o.teams[k].pv||0)<t.pv)o.teams[k]=t});o.sv=4}
+function arrows(m){var a=m.ar||{},ps=pos(s.mode,m.f),h='',k;for(k in a){var q=(m.cx&&m.cx[k])||ps[k],t=a[k];if(!q||!t)continue;q=sq(q);t=sq(t);h+='<line x1="'+q.x+'" y1="'+q.y+'" x2="'+t.x+'" y2="'+t.y+'" marker-end="url(#ah)"/>'}return h?'<svg class="ar" viewBox="0 0 100 100" preserveAspectRatio="none"><defs><marker id="ah" markerWidth="4" markerHeight="4" refX="3" refY="2" orient="auto"><path d="M0 0L4 2L0 4z" fill="#ffe14d"/></marker></defs><g stroke="#ffe14d" stroke-width=".7" stroke-dasharray="2 1.2" fill="none">'+h+'</g></svg>':''}
+$('ea').onclick=function(){arrowMode=!arrowMode;renderEd()};
+$('eac').onclick=function(){var m=s.m[s.mode];if(m.ar&&sel){delete m.ar[sel.i];save();renderPitch();renderEd()}};
+var PNGB=null;
+function drawPng(){var m=s.m[s.mode],ps=pos(s.mode,m.f),rl=roles(m.f),W=680,H=980,c=document.createElement('canvas');c.width=W;c.height=H;var g=c.getContext('2d'),X=20,Y=96,PW=640,PH=Math.round(PW*88/68),sx=PW/68,sy=PH/88,i;
+ g.fillStyle='#0e1a14';g.fillRect(0,0,W,H);
+ for(i=0;i<8;i++){g.fillStyle=i%2?'#2a8250':'#2e8b57';g.fillRect(X,Y+i*PH/8,PW,PH/8)}
+ g.strokeStyle='rgba(255,255,255,.75)';g.lineWidth=2;
+ [[2,2,64,84],[14,2,40,15],[25,2,18,6],[14,71,40,15],[25,80,18,6]].forEach(function(r){g.strokeRect(X+r[0]*sx,Y+r[1]*sy,r[2]*sx,r[3]*sy)});
+ g.beginPath();g.moveTo(X+2*sx,Y+44*sy);g.lineTo(X+66*sx,Y+44*sy);g.stroke();g.beginPath();g.ellipse(X+34*sx,Y+44*sy,8*sx,8*sy,0,0,7);g.stroke();
+ var ar=m.ar||{};g.strokeStyle='#ffe14d';g.fillStyle='#ffe14d';g.lineWidth=4;
+ Object.keys(ar).forEach(function(k){var q=(m.cx&&m.cx[k])||ps[k],t=ar[k];if(!q)return;var x1=X+q.x/100*PW,y1=Y+q.y/100*PH,x2=X+t.x/100*PW,y2=Y+t.y/100*PH,an=Math.atan2(y2-y1,x2-x1);g.setLineDash([12,8]);g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();g.setLineDash([]);g.beginPath();g.moveTo(x2,y2);g.lineTo(x2-16*Math.cos(an-.4),y2-16*Math.sin(an-.4));g.lineTo(x2-16*Math.cos(an+.4),y2-16*Math.sin(an+.4));g.fill()});
+ g.textAlign='center';
+ m.pl.forEach(function(id,i){var q=(m.cx&&m.cx[i])||ps[i],p=s.r[id]||{n:'',u:''},ro=rl[i]||'';if(!q)return;var x=X+q.x/100*PW,y=Y+q.y/100*PH;g.beginPath();g.arc(x,y,27,0,7);g.fillStyle=rc(ro);g.fill();g.lineWidth=3;g.strokeStyle='#fff';g.stroke();g.fillStyle=ro==='GK'?'#2b2100':'#fff';g.font='800 18px Inter,sans-serif';g.textBaseline='middle';g.fillText(ro,x,y+1);
+  if(p.u){g.fillStyle='#fff';g.beginPath();g.arc(x+22,y-22,11,0,7);g.fill();g.fillStyle='#111';g.font='800 12px Inter,sans-serif';g.fillText(p.u,x+22,y-21)}
+  g.font='700 17px Inter,sans-serif';g.fillStyle='#fff';g.strokeStyle='rgba(0,0,0,.8)';g.lineWidth=4;g.textBaseline='alphabetic';var nm=p.n||'—';g.strokeText(nm,x,y+48);g.fillText(nm,x,y+48)});
+ g.textAlign='left';g.textBaseline='alphabetic';g.fillStyle='#fff';g.font='800 30px Inter,sans-serif';g.fillText((s.team||'Team')+' — '+M[s.mode].t,X,48);g.fillStyle='#9fb3a6';g.font='600 19px Inter,sans-serif';g.fillText('Coach: '+(s.coach||'—')+'   Formation: '+m.f,X,76);
+ var sb=m.b.map(function(id){return s.r[id]}).filter(function(p){return p&&p.n}).map(function(p){return p.n}).join(', ');g.font='600 15px Inter,sans-serif';g.fillText(('Subs: '+sb).slice(0,92),X,Y+PH+30);
+ return c}
+$('png').onclick=function(){var c=drawPng();c.toBlob(function(b){PNGB=b});$('imi').src=c.toDataURL('image/png');$('im').hidden=false};
+$('imx').onclick=function(){$('im').hidden=true};
+$('ims').onclick=function(){var nm=(s.team||'lineup').replace(/[^a-z0-9]+/gi,'-')+'-'+s.mode+'.png',hold=function(){toast('Press and hold the image to save')};if(!window.claude||!claude.use||!PNGB){hold();return}claude.use('downloads').then(function(d){if(!d){hold();return}return d.save({filename:nm,data:PNGB}).then(function(){toast('Saved ✓')},hold)}).catch(hold)};
+var V='t',Sx=null,mdr=null,mmv=false,HC='#38bdf8',AC2='#f472b6',MP={main:[55,93,14,90],attack:[51,87,7,84],defense:[58,94,34,93]};
+function cp(o){return JSON.parse(JSON.stringify(o))}
+function MM(){if(!A.mt)A.mt={h:cp(A.teams[0]),a:cp(A.teams[1]||A.teams[0]),st:'main'};return A.mt}
+function mmodes(st){return st==='home'?['attack','defense']:st==='away'?['defense','attack']:['main','main']}
+function mxy(md,q,sd){var p=MP[md],d=p[3]-19,D=p[1]-9,X=q.x,Y=q.y>=d?D+(q.y-d)/19*(p[1]-D):p[0]+(q.y-p[2])/(d-p[2])*(D-p[0]);return sd==='h'?{x:100-X,y:100-Y}:{x:X,y:Y}}
+function minv(md,px,py,sd){var p=MP[md],X=sd==='h'?100-px:px,Y=sd==='h'?100-py:py;return{x:Math.max(0,Math.min(100,X)),y:Math.max(0,Math.min(100,Y>=p[1]-9?p[3]-19+(Y-(p[1]-9))/9*19:p[2]+(Y-p[0])/(p[1]-9-p[0])*(p[3]-19-p[2])))}}
+var KITS={'Manchester United':[['#da291c','#fbe122'],['#ffffff','#111111']],'Manchester City':[['#6cabdd','#ffffff'],['#7a1f3d','#6cabdd']],'Chelsea':[['#034694','#ffffff'],['#f5f5f5','#034694']],'Arsenal':[['#ef0107','#ffffff'],['#0b1d3a','#f5d142']],'Liverpool':[['#c8102e','#f6eb61'],['#1f2a44','#c8102e']],'Tottenham':[['#ffffff','#132257'],['#132257','#ffffff']],'Bayern Munich':[['#dc052d','#ffffff'],['#0b1f4b','#dc052d']],'Borussia Dortmund':[['#fde100','#111111'],['#111111','#fde100']],'Real Madrid':[['#ffffff','#f1bf00'],['#1a237e','#f1bf00']],'Barcelona':[['#a50044','#004d98'],['#f2c500','#a50044']],'Atlético Madrid':[['#cb3524','#ffffff'],['#1b2a5a','#cb3524']],'AC Milan':[['#e10613','#111111','s'],['#f5f5f5','#e10613']],'Inter':[['#1b4fa3','#111111','s'],['#f5f5f5','#1b4fa3']],'Juventus':[['#f5f5f5','#111111','s'],['#111111','#f5f5f5']],'Napoli':[['#12a0d7','#ffffff'],['#f5f5f5','#12a0d7']],'Roma':[['#8e1f2f','#f0bc42'],['#f5f5f5','#8e1f2f']],'Como':[['#1d4ed8','#ffffff'],['#f5f5f5','#1d4ed8']],'Manchester United 1999':[['#da291c','#111111'],['#f5f5f5','#da291c']],'Manchester United 2008':[['#da291c','#ffffff'],['#111111','#da291c']],'Japan – Captain Tsubasa':[['#1e40af','#ffffff'],['#ffffff','#1e40af']]},Zv=0,ZL=[1,1.4,1.8];
+function kc(t){return KITS[t]||[['#2563eb','#ffffff'],['#f5f5f5','#2563eb']]}
+function cd(a,b){var x=parseInt(a.slice(1),16),y=parseInt(b.slice(1),16);return Math.hypot((x>>16)-(y>>16),((x>>8)&255)-((y>>8)&255),(x&255)-(y&255))}
+function lum(h){var x=parseInt(h.slice(1),16);return((x>>16)*299+((x>>8)&255)*587+(x&255)*114)/1000}
+function kit(sd){var m=MM(),ks=kc(m[sd].team),i=m[sd+'k'];if(i==null){i=0;if(sd==='a'&&cd(kit('h').f,ks[0][0])<110)i=1}var k=ks[i];return{f:k[0],a:k[1],t:lum(k[0])>150?'#111111':'#ffffff',i:i,p:k[2]||''}}
+var SHD='M20 4L8 10L1 22L10 27L14 21V52H46V21L50 27L59 22L52 10L40 4Q30 12 20 4Z';
+function shirt(f,a,p,n,fs){var s='';if(p==='s')for(var i=1;i<7;i+=2)s+='<rect x="'+(i*60/7).toFixed(2)+'" y="0" width="8.6" height="56" fill="'+a+'"/>';return '<path d="'+SHD+'" fill="'+f+'"/><g clip-path="url(#shclip)">'+s+'</g><path d="'+SHD+'" fill="none" stroke="#0008" stroke-width="1.3" stroke-linejoin="round"/><path d="M20 4Q30 12 40 4" fill="none" stroke="'+a+'" stroke-width="2.6"/><path d="M1.7 22.8L10.3 27.4M58.3 22.8L49.7 27.4" stroke="'+a+'" stroke-width="3.2"/><text x="30" y="38" text-anchor="middle" font-size="'+(fs||19)+'" font-weight="800" font-family="Inter,system-ui,sans-serif" fill="#fff" stroke="#000" stroke-width="2.6" stroke-linejoin="round" paint-order="stroke">'+esc(n||'')+'</text>'}
+var GKP=[['#facc15','#111111'],['#22c55e','#052e16'],['#111827','#ffffff'],['#a78bfa','#1e1b4b'],['#f472b6','#500724'],['#f97316','#431407'],['#22d3ee','#083344']];
+function gkc(sd,k){var m=MM(),o=kit(sd==='h'?'a':'h'),nm=m[sd].team||'',h=0,i,c,hg=sd==='a'?gkc('h',kit('h')):null;for(i=0;i<nm.length;i++)h=(h*31+nm.charCodeAt(i))%997;h+=k.i;for(i=0;i<GKP.length;i++){c=GKP[(h+i)%GKP.length];if(cd(c[0],k.f)>120&&cd(c[0],o.f)>90&&cd(c[0],o.a)>60&&(!hg||c!==hg))return c}return GKP[(h)%GKP.length]}
+function zoomApply(){var ks=A.ks||4;$('mp').style.setProperty('--ks',1+(ks-4)*0.15);$('msz').value=ks;var H=isH();$('mp').className='pitch mp'+(H?' ls':'');$('mv').classList.toggle('hz',H);$('mo').textContent=H?'↕ Vertical':'↔ Horizontal';$('mp').style.width=H?'max('+ZL[Zv]*100+'%,'+Math.round(780*ZL[Zv])+'px)':ZL[Zv]*100+'%';$('mz').textContent='🔍 Zoom '+ZL[Zv]+'×'}
+$('mz').onclick=function(){Zv=(Zv+1)%3;zoomApply()};$('msz').oninput=function(){A.ks=+this.value;zoomApply()};$('msz').onchange=function(){save()};
+$('msb').onclick=function(e){var b=e.target.closest('.kt');if(!b)return;var m=MM(),sd=b.dataset.k;m[sd+'k']=kit(sd).i?0:1;save();rm();msb()};
+var LM=null,lo=window.matchMedia('(orientation: landscape)').matches;
+function isH(){return LM==='h'||(LM!=='v'&&window.matchMedia('(orientation: landscape)').matches)}
+function mlinesH(){return '<svg viewBox="0 0 176 68" preserveAspectRatio="none" fill="none" stroke="#ffffff99" stroke-width=".45"><rect x="2" y="2" width="172" height="64"/><line x1="88" y1="2" x2="88" y2="66"/><circle cx="88" cy="34" r="9"/><rect x="2" y="14" width="24" height="40"/><rect x="2" y="25" width="8" height="18"/><rect x="150" y="14" width="24" height="40"/><rect x="166" y="25" width="8" height="18"/><path d="M26 26a8 8 0 0 1 0 16M150 26a8 8 0 0 0 0 16"/></svg>'}
+$('mo').onclick=function(){LM=isH()?'v':'h';rmAll()};
+window.addEventListener('resize',function(){var n=window.matchMedia('(orientation: landscape)').matches;if(n!==lo){lo=n;LM=null;if(V==='m')rmAll();else renderPitch()}});
+function sq(q){return isH()?{x:Math.max(11,Math.min(89,100-q.y)),y:Math.max(10,Math.min(90,50+(q.x-50)*1.05))}:q}
+function sqi(X,Y){return isH()?{x:Math.max(0,Math.min(100,50+(Y-50)/1.05)),y:Math.max(0,Math.min(100,100-X))}:{x:X,y:Y}}
+function hzS(){ksS();var H=isH();$('pitch').className='pitch'+(H?' ls':'');$('pitch').style.width=H?'max(100%,780px)':'';$('mt').classList.toggle('hz',H);$('so').textContent=H?'↕ Vertical':'↔ Horizontal'}
+$('so').onclick=function(){LM=isH()?'v':'h';renderPitch()};
+var CAPS={manchester_united_1999:'Roy Keane',manchester_united_2008:'Gary Neville',japan_captain_tsubasa:'Tsubasa Ozora'};
+function capSet(t){if(t.cap!==undefined||!t.xid||!CAPS[t.xid])return;Object.keys(t.r).forEach(function(k){if(t.r[k].n===CAPS[t.xid])t.cap=k})}
+function ksS(){var ks=A.ks||4;$('pitch').style.setProperty('--ks',1+(ks-4)*0.15);$('ssz').value=ks}
+$('ssz').oninput=function(){A.ks=+this.value;ksS()};$('ssz').onchange=function(){save()};
+$('ecp').onclick=function(){if(!sel)return;var id=sel.t==='p'?s.m[s.mode].pl[sel.i]:s.m[s.mode].b[sel.i];s.cap=s.cap===id?null:id;save();renderPitch();renderBench();renderEd()};
+(function(){try{var c=document.createElement('canvas');c.width=c.height=180;var g=c.getContext('2d'),gr=g.createLinearGradient(0,0,0,180);gr.addColorStop(0,'#1f8f55');gr.addColorStop(1,'#0e4a2c');g.fillStyle=gr;g.fillRect(0,0,180,180);g.strokeStyle='rgba(255,255,255,.5)';g.lineWidth=5;g.strokeRect(18,18,144,144);g.beginPath();g.moveTo(18,90);g.lineTo(162,90);g.stroke();g.beginPath();g.arc(90,90,28,0,7);g.stroke();g.fillStyle='#fff';g.beginPath();g.moveTo(60,54);g.lineTo(42,64);g.lineTo(34,86);g.lineTo(48,92);g.lineTo(54,82);g.lineTo(54,128);g.lineTo(126,128);g.lineTo(126,82);g.lineTo(132,92);g.lineTo(146,86);g.lineTo(138,64);g.lineTo(120,54);g.quadraticCurveTo(90,76,60,54);g.fill();var l=document.createElement('link');l.rel='apple-touch-icon';l.href=c.toDataURL('image/png');document.head.appendChild(l)}catch(e){}})();
+function sn(n){var w=String(n||'').trim().split(/\s+/);if(!w[0])return '—';var l=w.length-1;if(l>0&&/^[A-Z][a-zà-ÿ]+-[a-z]+$/.test(w[l]))return w[0];while(l>0&&/^(van|von|der|den|de|da|di|del|dos|do|el|al|le|la|ter|ten)$/i.test(w[l-1]))l--;return w.slice(l).join(' ')}
+function mlines(){return '<svg viewBox="0 0 68 176" preserveAspectRatio="none" fill="none" stroke="#ffffff99" stroke-width=".45"><rect x="2" y="2" width="64" height="172"/><line x1="2" y1="88" x2="66" y2="88"/><circle cx="34" cy="88" r="9"/><rect x="14" y="2" width="40" height="24"/><rect x="25" y="2" width="18" height="8"/><rect x="14" y="150" width="40" height="24"/><rect x="25" y="166" width="18" height="8"/><path d="M26 26a8 8 0 0 0 16 0M26 150a8 8 0 0 1 16 0"/></svg>'}
+function rm(){var m=MM(),md=mmodes(m.st),H=isH(),h=H?mlinesH():mlines(),ar='',pl='',nmH='';function tq(o){return H?{x:o.y,y:Math.max(9.5,Math.min(90.5,50+(50-o.x)*1.05))}:o}
+ [['h',0],['a',1]].forEach(function(z){var sd=z[0],mode=md[z[1]],tm=m[sd],mm=tm.m[mode],ps=pos(mode,mm.f),rl=roles(mm.f),k=kit(sd);
+  if(mm.ar)Object.keys(mm.ar).forEach(function(k){var a=tq(mxy(mode,(mm.cx&&mm.cx[k])||ps[k]||{x:50,y:50},sd)),b=tq(mxy(mode,mm.ar[k],sd)),dx=b.x-a.x,dy=b.y-a.y,L=Math.hypot(dx,dy);if(L<5)return;ar+='<line x1="'+a.x+'" y1="'+a.y+'" x2="'+(b.x-dx/L*4)+'" y2="'+(b.y-dy/L*4)+'"/>'});
+  mm.pl.forEach(function(id,i){var p=tm.r[id]||{n:'',u:''},q0=(mm.cx&&mm.cx[i])||ps[i];if(!q0)return;var q=tq(mxy(mode,q0,sd)),ro=rl[i]||'',gk=ro==='GK',gc=gkc(sd,k);pl+='<div class="p'+(Sx&&Sx.s===sd&&Sx.t==='p'&&Sx.i===i?' sel':'')+'" data-p="'+i+'" data-s="'+sd+'" style="left:'+q.x+'%;top:'+q.y+'%;--c:'+(gk?gc[0]:k.f)+';--tk:'+(gk?gc[1]:k.a)+';--tx:'+(gk?'#111111':k.t)+'"><i class="kit"><svg viewBox="0 0 60 56">'+shirt(gk?gc[0]:k.f,gk?gc[1]:k.a,gk?'':k.p,ro,14)+'</svg></i><u>'+esc(p.u||'')+'</u>'+(tm.cap===id?'<s class="cb">C</s>':'')+'<b>'+esc(sn(p.n))+'</b></div>'})});
+ h+=ar?'<svg viewBox="0 0 100 100" preserveAspectRatio="none" class="ar"><defs><marker id="mah" markerWidth="4" markerHeight="4" refX="3" refY="2" orient="auto"><path d="M0 0L4 2L0 4z" fill="#ffe14d"/></marker></defs><g stroke="#ffe14d" stroke-width=".6" stroke-dasharray="2 1.2" fill="none" marker-end="url(#mah)">'+ar+'</g></svg>':'';
+ $('mp').innerHTML=h+pl+nmH}
+function msb(){var m=MM(),md=mmodes(m.st);function t(sd,k){var tm=m[sd],mode=md[k],kk=kit(sd),st=m.st==='main'?'Starting XI':(mode==='attack'?'⚽ In possession':'🛡 Out of possession');return '<div class="sbt '+sd+'"><small>'+(sd==='h'?'HOME':'AWAY')+'<button class="kt" data-k="'+sd+'" aria-label="Change kit" style="background:'+(kk.p==='s'?'repeating-linear-gradient(90deg,'+kk.f+' 0 4px,'+kk.a+' 4px 8px)':kk.f)+';border-color:'+kk.a+'"></button></small><b style="border-color:'+kk.f+'">'+esc(tm.team||'Team')+'</b><em>'+st+' · '+tm.m[mode].f+'</em>'+(tm.coach?'<em class="co">Coach: '+esc(tm.coach)+'</em>':'')+'</div>'}$('msb').innerHTML=t('h',0)+'<div class="vs">VS</div>'+t('a',1)}
+function mst(){var m=MM(),h='';[['main','⚽ Starting XI'],['home','🏠 Home ball'],['away','✈️ Away ball']].forEach(function(x){h+='<button data-t="'+x[0]+'" class="'+(m.st===x[0]?'on':'')+'">'+x[1]+'</button>'});$('mst').innerHTML=h}
+function mfm(sd){var m=MM(),md=mmodes(m.st)[sd==='h'?0:1],mm=m[sd].m[md],h='';Object.keys(F).forEach(function(k){h+='<button data-f="'+k+'" class="'+(mm.f===k?'on':'')+'">'+k+'</button>'});$(sd==='h'?'mfh':'mfa').innerHTML=h;$(sd==='h'?'mlh':'mla').innerHTML='<b>'+esc(m[sd].team||'Team')+'</b> · '+M[md].t+' formation'}
+function mbn(sd){var m=MM(),mm=m[sd].m[mmodes(m.st)[sd==='h'?0:1]],H={G:'',D:'',M:'',A:''};mm.b.forEach(function(id,i){var p=m[sd].r[id]||{n:'',u:''},g=grp(p);H[g]+='<button class="b g'+g+(Sx&&Sx.s===sd&&Sx.t==='b'&&Sx.i===i?' sel':'')+'" data-b="'+i+'" data-s="'+sd+'"><em>'+esc(p.u||'')+'</em><span>'+esc(sn(p.n))+'</span>'+(m[sd].cap===id?'<small class="cbd">C</small>':'')+'</button>'});$('mb'+sd).innerHTML='<div class="bench">'+H.G+H.D+H.M+H.A+'</div>';$('mt'+sd).style.borderLeft='6px solid '+kit(sd).f;$('mt'+sd).style.paddingLeft='8px';$('mt'+sd).textContent=(m[sd].team||'Team')+' · Subs'}
+function msel(){var m=MM(),o='';A.teams.forEach(function(t,i){o+='<option value="'+i+'">'+esc(t.team||'Team '+(i+1))+'</option>'});['mh','ma'].forEach(function(id,k){var el=$(id),nm=(k?m.a:m.h).team,ix=0;A.teams.forEach(function(t,i){if(t.team===nm)ix=i});el.innerHTML=o;el.value=ix})}
+function rml(){var h='';(A.ml||[]).forEach(function(x,i){h+='<div class="mli"><button data-o="'+i+'"><b>'+esc(x.n)+'</b><small>'+esc(x.d)+'</small></button><button data-x="'+i+'" aria-label="Delete">×</button></div>'});$('ml').innerHTML=h||'<div class="hint" style="margin:0">No saved matches yet.</div>'}
+function rmAll(){zoomApply();MM();msel();mst();msb();rm();mfm('h');mfm('a');mbn('h');mbn('a');rml()}
+function mtap(sd,t,i){var m=MM(),mm=m[sd].m[mmodes(m.st)[sd==='h'?0:1]];
+ if(!Sx||Sx.s!==sd){Sx={s:sd,t:t,i:i}}
+ else if(Sx.t===t&&Sx.i===i){Sx=null}
+ else{swp(m[sd],mmodes(m.st)[sd==='h'?0:1],Sx.t,Sx.i,t,i);Sx=null;save();toast('Swapped ✓')}
+ rm();mbn('h');mbn('a')}
+$('nv').onclick=function(e){var b=e.target.closest('[data-v]');if(!b)return;V=b.dataset.v;[].forEach.call($('nv').children,function(x){x.className=x.dataset.v===V?'on':''});$('mt').hidden=V!=='t';$('mv').hidden=V!=='m';if(V==='m')rmAll();window.scrollTo(0,0)};
+$('mh').onchange=function(){MM().h=cp(A.teams[+this.value]);MM().hk=null;Sx=null;save();rmAll()};
+$('ma').onchange=function(){MM().a=cp(A.teams[+this.value]);MM().ak=null;Sx=null;save();rmAll()};
+$('msw').onclick=function(){var m=MM(),t=m.h;m.h=m.a;m.a=t;m.hk=m.ak=null;Sx=null;save();rmAll()};
+$('mrs').onclick=function(){var m=MM();m.h=cp(A.teams[+$('mh').value]);m.a=cp(A.teams[+$('ma').value]);Sx=null;save();rmAll();toast('Reset from squads')};
+$('mst').onclick=function(e){var b=e.target.closest('[data-t]');if(!b)return;MM().st=b.dataset.t;Sx=null;save();rmAll()};
+['mfh','mfa'].forEach(function(id,k){$(id).onclick=function(e){var b=e.target.closest('[data-f]');if(!b)return;var sd=k?'a':'h',m=MM(),mm=m[sd].m[mmodes(m.st)[k]];mm.f=b.dataset.f;mm.cx={};mm.ar={};Sx=null;save();rm();mfm(sd);msb()}});
+$('mbh').onclick=$('mba').onclick=function(e){var b=e.target.closest('[data-b]');if(b)mtap(b.dataset.s,'b',+b.dataset.b)};
+$('msv').onclick=function(){var m=MM();A.ml=A.ml||[];A.ml.unshift({n:(m.h.team||'Home')+' vs '+(m.a.team||'Away'),d:new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short'}),m:cp(m)});A.ml=A.ml.slice(0,10);save();rml();toast('Match saved ✓')};
+$('ml').onclick=function(e){var o=e.target.closest('[data-o]'),x=e.target.closest('[data-x]');if(o){A.mt=cp(A.ml[+o.dataset.o].m);Sx=null;save();rmAll();toast('Match loaded')}else if(x){A.ml.splice(+x.dataset.x,1);save();rml()}};
+$('mp').addEventListener('pointerdown',function(e){var b=e.target.closest('[data-p]');if(!b)return;mdr={i:+b.dataset.p,s:b.dataset.s,el:b,x0:e.clientX,y0:e.clientY,r:this.getBoundingClientRect()};mmv=false;try{b.setPointerCapture(e.pointerId)}catch(x){}});
+$('mp').addEventListener('pointermove',function(e){if(!mdr)return;if(!mmv&&Math.abs(e.clientX-mdr.x0)+Math.abs(e.clientY-mdr.y0)<8)return;mmv=true;mdr.px=Math.max(3,Math.min(97,(e.clientX-mdr.r.left)/mdr.r.width*100));mdr.py=Math.max(3,Math.min(97,(e.clientY-mdr.r.top)/mdr.r.height*100));mdr.el.style.transition='none';mdr.el.style.left=mdr.px+'%';mdr.el.style.top=mdr.py+'%';var nl=$('mp').querySelector('[data-n="'+mdr.s+mdr.i+'"]');if(nl){nl.style.left=mdr.px+'%';nl.style.top=mdr.py+'%'}});
+$('mp').addEventListener('pointerup',function(){var d=mdr;mdr=null;if(!d)return;if(mmv){var m=MM(),md=mmodes(m.st)[d.s==='h'?0:1],mm=m[d.s].m[md];mm.cx=mm.cx||{};mm.cx[d.i]=minv(md,isH()?50-(d.py-50)/1.05:d.px,isH()?d.px:d.py,d.s);save();rm()}else{mtap(d.s,'p',d.i)}});
+$('mp').addEventListener('pointercancel',function(){mdr=null;rm()});
+var _all=all;all=function(){_all();if(V==='m')rmAll()};
+function swp(t,mode,x,xi,y,yi){var mm=t.m[mode],a=x==='p'?mm.pl:mm.b,b=y==='p'?mm.pl:mm.b,u=a[xi],v=b[yi];a[xi]=v;b[yi]=u;if(x!==y){var out=x==='p'?u:v,inn=x==='p'?v:u;Object.keys(t.m).forEach(function(k){if(k===mode)return;var c=t.m[k],j=c.pl.indexOf(out),q=c.b.indexOf(inn);if(j>-1&&q>-1){c.pl[j]=inn;c.b[q]=out}})}}
+function sync(t){var S=t.m.main&&t.m.main.pl;if(!S)return;Object.keys(t.m).forEach(function(k){var c=t.m[k];if(k!=='main'){var ot=[];c.pl.forEach(function(id,j){if(S.indexOf(id)<0)ot.push(j)});var inn=S.filter(function(id){return c.pl.indexOf(id)<0});ot.forEach(function(j,n){if(inn[n]!==undefined)c.pl[j]=inn[n]})}c.b=c.b.filter(function(id){return c.pl.indexOf(id)<0&&t.r[id]});Object.keys(t.r).forEach(function(id){if(c.pl.indexOf(id)<0&&c.b.indexOf(id)<0)c.b.push(id)})})}
+var XT=[
+'Manchester United 1999|Sir Alex Ferguson|4-4-2|4-4-2|4-5-1|GK 1 Peter Schmeichel;RB 2 Gary Neville;CB 5 Ronny Johnsen;CB 6 Jaap Stam;LB 3 Denis Irwin;RM 7 David Beckham;CM 16 Roy Keane;CM 18 Paul Scholes;LM 11 Ryan Giggs;ST 19 Dwight Yorke;ST 9 Andy Cole;GK 17 Raimond van der Gouw;LB 12 Phil Neville;CB 4 David May;CB 21 Henning Berg;CB 24 Wes Brown;CM 8 Nicky Butt;LM 15 Jesper Blomqvist;AM 14 Jordi Cruyff;ST 10 Teddy Sheringham;ST 20 Ole Gunnar Solskjaer;ST 22 Erik Nevland;RB 23 Michael Clegg|1|manchester_united_1999|Captain: Roy Keane. Treble winners 1998/99.',
+'Manchester United 2008|Sir Alex Ferguson|4-3-3|4-3-3|4-1-4-1|GK 1 Edwin van der Sar;RB 6 Wes Brown;CB 5 Rio Ferdinand;CB 15 Nemanja Vidic;LB 3 Patrice Evra;CM 4 Owen Hargreaves;DM 16 Michael Carrick;CM 18 Paul Scholes;RW 7 Cristiano Ronaldo;ST 32 Carlos Tevez;LW 10 Wayne Rooney;GK 29 Tomasz Kuszczak;GK 12 Ben Foster;RB 2 Gary Neville;CB 22 John O’Shea;LB 27 Mikael Silvestre;CB 19 Gerard Piqué;CM 24 Darren Fletcher;RM 13 Park Ji-sung;CM 8 Anderson;LW 11 Ryan Giggs;LW 17 Nani;ST 9 Louis Saha;ST 21 Dong Fangzhuo;RW 33 Chris Eagles|1|manchester_united_2008|Captain: Gary Neville. European champions 2007/08.',
+'Japan – Captain Tsubasa|Kozo Kira|4-2-3-1|4-2-3-1|4-1-4-1|GK 1 Genzo Wakabayashi;RB 14 Ryo Ishizaki;CB 5 Hiroshi Jito;CB 6 Jun Misugi;LB 15 Hanji Urabe;DM 8 Mamoru Izawa;CM 12 Hikaru Matsuyama;RW 20 Shingo Aoi;AM 10 Tsubasa Ozora;LW 11 Taro Misaki;ST 9 Kojiro Hyuga;GK 17 Ken Wakashimazu;GK 24 Yuzo Morisaki;RB 7 Makoto Soda;CB 22 Takeshi Kishida;CB 23 Tomoya Akai;CM Kazuo Tachibana;CM Masao Tachibana;AM Takeshi Sawada;RW 18 Shun Nitta;ST 19 Kazuki Sorimachi;ST Hajime Taki;ST Teppei Kisugi|1|japan_captain_tsubasa|Captain: Tsubasa Ozora.'];
+function xseed(o){o.xs=o.xs||[];XT.forEach(function(x){var f=x.split('|'),id=f[7];if(o.xs.indexOf(id)>-1)return;o.xs.push(id);if(o.teams.some(function(t){return t.xid===id}))return;var mm=[];f[5]=f[5].split(';').map(function(z,i){var a=z.split(' ');if(a[0]==='LM'||a[0]==='RM'){mm.push(i);a[0]=a[0]==='LM'?'LW':'RW'}return a.join(' ')}).join(';');var t=build(f.join('|'));mm.forEach(function(i){t.r['p'+i].g='M'});t.xid=id;t.m.main.note=f[8]||'';o.teams.push(t)})}
+function wrap(o){if(!o.teams)o={cur:0,ts:0,teams:[o]};if(!o.teams.length)o.teams=[def()];if(!(o.cur>=0&&o.cur<o.teams.length))o.cur=0;o.teams.forEach(mig);seed(o);xseed(o);o.teams.forEach(capSet);o.teams.forEach(sync);if(o.mt){sync(o.mt.h);sync(o.mt.a)}return o}
+function renderTeams(){var h='';A.teams.forEach(function(t,i){h+='<option value="'+i+'"'+(i===A.cur?' selected':'')+'>'+esc(t.team||('Team '+(i+1)))+'</option>'});$('tsel').innerHTML=h;$('tdel').hidden=A.teams.length<2}
+$('tsel').onchange=function(){A.cur=+this.value;s=A.teams[A.cur];sel=null;save();$('coach').value=s.coach;$('team').value=s.team;all()};
+$('tnew').onclick=function(){var t=def();A.teams.push(t);A.cur=A.teams.length-1;s=t;sel=null;save();$('coach').value='';$('team').value='';all();toast('New team created')};
+$('tdel').onclick=function(){if(A.teams.length<2)return;if(!confirm('Delete this team?'))return;A.teams.splice(A.cur,1);A.cur=Math.max(0,A.cur-1);s=A.teams[A.cur];sel=null;save();$('coach').value=s.coach;$('team').value=s.team;all()};
+$('tsv').onclick=function(){save();if(DB){clearTimeout(dbt);DB.set({json:JSON.stringify(A),ts:A.ts}).then(function(){setSv('Saved to your account ✓');toast('Saved ✓')},function(){toast('Could not save to your account')})}else{toast('Saved on this device')}};
+function initDb(){setSv('Saved on this device only');if(!window.claude||!claude.use)return;
+ Promise.all([claude.use('db'),claude.use('user')]).then(function(r){var db=r[0],u=r[1];if(!db||!u)return;return u.id().then(function(id){if(!id)return;UID=id;var ref=db.collection('data/users/'+id).doc('state');
+  return ref.get().then(function(snap){var d=snap.exists?snap.data():null;
+   if(d&&d.json&&(d.ts||0)>(A.ts||0)){try{var o=JSON.parse(d.json);if(o&&o.teams){A=wrap(o);s=A.teams[A.cur];sel=null;try{localStorage.setItem(KEY,d.json)}catch(e){}$('coach').value=s.coach;$('team').value=s.team;all()}}catch(e){}}
+   DB=ref;setSv('Saved to your account ✓');if(!d||(d.ts||0)<(A.ts||0))pushDb(JSON.stringify(A))})})}).catch(function(){setSv('Saved on this device only')})}
+A=wrap(load());s=A.teams[A.cur];$('coach').value=s.coach;$('team').value=s.team;all();initDb();
+</script>
+</body>
+</html>
